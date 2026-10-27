@@ -1,0 +1,28 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "Apache-2.0"
+
+[[mods]]
+    modId = "translatormod"
+    version = "${file.jarVersion}"
+    displayName = "DeepL Chat Translator"
+    description = "Translates Minecraft chat messages using DeepL API"
+    logoFile = "assets/translatormod/icon.png"
+
+# Mixin 設定（src/client/resources から統合されたファイル）
+[[mixins]]
+    config = "translatormod.client.mixins.json"
+
+[[dependencies.translatormod]]
+    modId = "neoforge"
+    type = "required"
+    versionRange = "[26.1,)"
+    ordering = "NONE"
+    side = "CLIENT"
+
+[[dependencies.translatormod]]
+    modId = "minecraft"
+    type = "required"
+    versionRange = "[26.1,)"
+    ordering = "NONE"
+    side = "BOTH"
