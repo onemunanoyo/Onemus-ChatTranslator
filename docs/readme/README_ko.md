@@ -1,28 +1,38 @@
-# ChatTranslator
+# ChatTranslator — Minecraft 26.1 (Fabric)
 
-DeepL API를 사용해 Minecraft 채팅과 아이템 툴팁을 번역하는 클라이언트 모드입니다.
+DeepL을 사용해 Minecraft 채팅과 아이템 툴팁을 번역하는 클라이언트 모드입니다.
+
+이 브랜치는 Minecraft 26.1 및 Fabric용입니다.
 
 [English](../../README.md) · [日本語](README_ja.md) · [简体中文](README_zh-hans.md) · [한국어](README_ko.md) · [Deutsch](README_de.md) · [Español](README_es.md) · [Français](README_fr.md) · [Português (Brasil)](README_pt-br.md) · [Tiếng Việt](README_vi.md) · [ไทย](README_th.md)
 
-## 소스 브랜치
+## 주요 기능
 
-`main`은 안내 페이지입니다. 사용 중인 Minecraft 버전에 맞는 브랜치를 선택하세요.
+대상 채팅을 자동 또는 클릭으로 번역하고, 아이템 툴팁과 Hypixel 채널별 동작을 설정할 수 있습니다. 무시 목록은 대소문자를 구분하지 않고 완전히 일치할 때 적용됩니다.
 
-| Minecraft | 로더 | 브랜치 |
-| --- | --- | --- |
-| 1.21.11 | Fabric | [1.21.11](https://github.com/onemunanoyo/Onemus-ChatTranslator/tree/1.21.11) |
-| 26.1 | Fabric | [26.1](https://github.com/onemunanoyo/Onemus-ChatTranslator/tree/26.1) |
-| 26.2 | Fabric | [26.2](https://github.com/onemunanoyo/Onemus-ChatTranslator/tree/26.2) |
-| 26.3 | Fabric | [26.3](https://github.com/onemunanoyo/Onemus-ChatTranslator/tree/26.3) |
-| 26.1 | NeoForge | [neoforge](https://github.com/onemunanoyo/Onemus-ChatTranslator/tree/neoforge) (이전 버전으로, Fabric 버전과 기능 및 유지보수 상태가 다릅니다) |
+## 시작하기
 
-Minecraft 버전과 로더에 맞는 파일을 다운로드하세요: [Modrinth](https://modrinth.com/mod/onemus-chattranslator/versions).
+맞는 Minecraft 버전과 로더에 모드를 설치하세요. DeepL API 키와 인터넷 연결이 필요합니다.
 
-## 개발
+J 키(기본값)로 설정을 열고 API 키와 번역 대상 언어를 설정하세요.
 
-해당 버전의 브랜치를 체크아웃하고 Gradle 설정과 README를 확인하세요. PR은 해당 브랜치로 보내 주세요.
+## 명령어
 
-DeepL API 키가 필요합니다. 이 비공식 모드는 DeepL SE, Mojang 또는 Microsoft와 관련이 없습니다.
+- `/tr <text>`: 텍스트를 번역해 자신에게만 표시합니다.
+- `/trt <text>`: 텍스트를 번역해 채팅 입력창에 넣습니다.
+- `/translate on` / `/translate off`: 자동 번역을 켜거나 끕니다.
+- `/translate status`: 현재 번역 설정을 표시합니다.
+- `/translate key <API_KEY>`: DeepL API 키를 설정합니다.
+- `/translate rule add <source> <target>`: 원본 언어와 대상 언어의 규칙을 추가합니다.
+- `/translate rule list`: 설정된 규칙을 나열합니다.
+
+## 추가 정보
+
+다른 버전은 main 안내를 확인하고 Modrinth에서 맞는 파일을 선택하세요.
+
+[Main](https://github.com/onemunanoyo/Onemus-ChatTranslator/tree/main) · [Modrinth](https://modrinth.com/mod/onemus-chattranslator/versions)
+
+비공식 프로젝트이며 DeepL SE, Mojang, Microsoft와 관련이 없습니다.
 
 ## 라이선스
 

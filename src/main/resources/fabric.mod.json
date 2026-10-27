@@ -1,0 +1,26 @@
+{
+	"schemaVersion": 1,
+	"id": "translatormod",
+	"version": "${version}",
+	"name": "ChatTranslator",
+	"description": "Translates Minecraft chat messages using DeepL API",
+	"authors": [],
+	"license": "Apache-2.0",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"onemunanoyo.translatormod.TranslatorModClient"
+		]
+	},
+	"mixins": [
+		{
+			"config": "translatormod.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.18.4",
+		"fabric-api": "*",
+		"minecraft": "~26.1"
+	}
+}

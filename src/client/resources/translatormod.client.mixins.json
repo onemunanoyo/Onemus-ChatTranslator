@@ -1,0 +1,12 @@
+{
+	"required": true,
+	"package": "onemunanoyo.translatormod.mixin.client",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"ChatHudMixin",
+		"HandledScreenMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

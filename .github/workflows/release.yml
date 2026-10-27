@@ -1,13 +1,91 @@
 name: release
 
-# GitHub requires workflow_dispatch on the default branch for the Run workflow UI.
-# The 1.21.11 and 26.1 branches contain their own release implementations.
 on:
   workflow_dispatch:
 
 jobs:
-  index-only:
+  release:
+    if: github.ref == 'refs/heads/26.1'
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
     steps:
-      - name: Explain branch selection
-        run: echo 'Select a version branch with a release workflow; main does not publish releases.'
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Compute new version
+        id: versioning
+        run: |
+          CURRENT_VERSION=$(grep '^mod_version=' gradle.properties | cut -d'=' -f2)
+          MAJOR=$(echo "$CURRENT_VERSION" | cut -d'.' -f1)
+          MINOR=$(echo "$CURRENT_VERSION" | cut -d'.' -f2)
+          PATCH=$(echo "$CURRENT_VERSION" | cut -d'.' -f3)
+          NEW_PATCH=$((PATCH + 1))
+          NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
+          MC_VERSION=$(grep '^minecraft_version=' gradle.properties | cut -d'=' -f2)
+          echo "new_version=${NEW_VERSION}"         >> "$GITHUB_OUTPUT"
+          echo "new_tag=mc-${MC_VERSION}-v${NEW_VERSION}"            >> "$GITHUB_OUTPUT"
+          echo "jar_name=ChatTranslator_${MC_VERSION}_ver_${NEW_VERSION}.jar" >> "$GITHUB_OUTPUT"
+
+      - name: Check release tag is available
+        env:
+          NEW_TAG: ${{ steps.versioning.outputs.new_tag }}
+        run: |
+          if git rev-parse -q --verify "refs/tags/${NEW_TAG}" >/dev/null; then
+            echo "Tag ${NEW_TAG} already exists" >&2
+            exit 1
+          fi
+
+      - name: Update gradle.properties
+        run: |
+          sed -i "s/^mod_version=.*/mod_version=${{ steps.versioning.outputs.new_version }}/" gradle.properties
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Prepare release JAR
+        run: |
+          mkdir -p release_dist
+          find build/libs/ -name "*.jar" \
+            ! -name "*-dev.jar" \
+            ! -name "*-sources.jar" \
+            -exec cp {} release_dist/${{ steps.versioning.outputs.jar_name }} \;
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit version bump and push tag
+        run: |
+          git add gradle.properties
+          git commit -m "chore: bump version to ${{ steps.versioning.outputs.new_version }} [skip ci]"
+          git tag ${{ steps.versioning.outputs.new_tag }}
+          git push origin HEAD:refs/heads/26.1
+          git push origin ${{ steps.versioning.outputs.new_tag }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.versioning.outputs.new_tag }}
+          name: ${{ steps.versioning.outputs.new_tag }}
+          files: release_dist/${{ steps.versioning.outputs.jar_name }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
