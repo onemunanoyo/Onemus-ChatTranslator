@@ -1,28 +1,38 @@
-# ChatTranslator
+# ChatTranslator — Minecraft 1.21.11 (Fabric)
 
-Un mod de cliente para Minecraft que traduce el chat y las descripciones emergentes de objetos mediante la API de DeepL.
+Mod de cliente para traducir el chat y las descripciones emergentes de objetos de Minecraft con DeepL.
+
+Esta rama es para Minecraft 1.21.11 con Fabric.
 
 [English](../../README.md) · [日本語](README_ja.md) · [简体中文](README_zh-hans.md) · [한국어](README_ko.md) · [Deutsch](README_de.md) · [Español](README_es.md) · [Français](README_fr.md) · [Português (Brasil)](README_pt-br.md) · [Tiếng Việt](README_vi.md) · [ไทย](README_th.md)
 
-## Ramas de código
+## Funciones
 
-`main` es una página de referencia. Elige la rama correspondiente a tu versión de Minecraft.
+Traduce mensajes de chat compatibles automáticamente o al hacer clic, traduce descripciones de objetos y configura los canales de Hypixel. La lista de exclusión usa coincidencias exactas sin distinguir mayúsculas.
 
-| Minecraft | Cargador | Rama |
-| --- | --- | --- |
-| 1.21.11 | Fabric | [1.21.11](https://github.com/onemunanoyo/Onemus-ChatTranslator/tree/1.21.11) |
-| 26.1 | Fabric | [26.1](https://github.com/onemunanoyo/Onemus-ChatTranslator/tree/26.1) |
-| 26.2 | Fabric | [26.2](https://github.com/onemunanoyo/Onemus-ChatTranslator/tree/26.2) |
-| 26.3 | Fabric | [26.3](https://github.com/onemunanoyo/Onemus-ChatTranslator/tree/26.3) |
-| 26.1 | NeoForge | [neoforge](https://github.com/onemunanoyo/Onemus-ChatTranslator/tree/neoforge) (versión antigua; sus funciones y mantenimiento difieren de las versiones Fabric) |
+## Primeros pasos
 
-Elige la descarga para tu versión de Minecraft y tu cargador en [Modrinth](https://modrinth.com/mod/onemus-chattranslator/versions).
+Instala el mod con la versión de Minecraft y el cargador correspondientes. Se requieren una clave de API de DeepL y conexión a Internet.
 
-## Desarrollo
+Pulsa J (predeterminado) para abrir los ajustes, introduce la clave y configura los idiomas de destino.
 
-Consulta la rama de la versión correspondiente y sigue su configuración de Gradle y su README. Envía los PR a esa rama.
+## Comandos
 
-Se necesita una clave de la API de DeepL. Este mod no oficial no está asociado con DeepL SE, Mojang ni Microsoft.
+- `/tr <text>`: Traduce el texto y muestra el resultado solo para ti.
+- `/trt <text>`: Traduce el texto y coloca el resultado en el campo de chat.
+- `/translate on` / `/translate off`: Activa o desactiva la traducción automática.
+- `/translate status`: Muestra los ajustes de traducción actuales.
+- `/translate key <API_KEY>`: Configura la clave de la API de DeepL.
+- `/translate rule add <source> <target>`: Añade una regla de idioma de origen y destino.
+- `/translate rule list`: Muestra las reglas configuradas.
+
+## Más información
+
+Consulta otras versiones en main y elige la descarga correspondiente en Modrinth.
+
+[Main](https://github.com/onemunanoyo/Onemus-ChatTranslator/tree/main) · [Modrinth](https://modrinth.com/mod/onemus-chattranslator/versions)
+
+Este proyecto no oficial no está asociado con DeepL SE, Mojang ni Microsoft.
 
 ## Licencia
 
