@@ -1,0 +1,13 @@
+name: release
+
+# GitHub requires workflow_dispatch on the default branch for the Run workflow UI.
+# The 1.21.11 and 26.1 branches contain their own release implementations.
+on:
+  workflow_dispatch:
+
+jobs:
+  index-only:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Explain branch selection
+        run: echo 'Select a version branch with a release workflow; main does not publish releases.'
