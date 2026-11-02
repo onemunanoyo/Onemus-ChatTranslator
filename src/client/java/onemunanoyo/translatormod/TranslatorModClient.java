@@ -153,7 +153,8 @@ public class TranslatorModClient implements ClientModInitializer {
 		if (text.startsWith("From ") || text.startsWith("To "))           return config.hypixelDM;
 		if (text.contains(": ")) {
 			String[] parts = text.split(": ", 2);
-			if (parts.length > 0 && parts[0].matches("^[A-Za-z0-9_]{3,16}$")) {
+			// ランクやレベルの [..] タグ付きの名前も許可する（例: [MVP+] Name, [123] [VIP] Name）
+			if (parts.length > 0 && parts[0].matches("^(?:\\[[^\\]]+\\] )*[A-Za-z0-9_]{3,16}(?: \\[[^\\]]+\\])?$")) {
 				return config.hypixelAllChat;
 			}
 		}
