@@ -2,15 +2,18 @@ package onemunanoyo.translatormod;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.minecraft.network.chat.Component;
 import onemunanoyo.translatormod.config.TranslatorConfig;
 
 import onemunanoyo.translatormod.util.I18n;
 import onemunanoyo.translatormod.util.DebugLog;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collections;
@@ -19,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Pattern;
 
 public class TranslationHandler {
 
@@ -232,6 +236,7 @@ public class TranslationHandler {
 
     private static volatile long validationCooldownUntil = 0L;
     private static final int VALIDATION_COOLDOWN_SEC = 30;
+    private static final Pattern KEY_PREFIX = Pattern.compile("^DeepL-Auth-Key\\s+", Pattern.CASE_INSENSITIVE);
 
     /**
      * 使用量を非同期取得する。
@@ -316,17 +321,30 @@ public class TranslationHandler {
         });
     }
 
-    public static CompletableFuture<Boolean> validateApiKeyAsync(String apiKey) {
+    public static String normalizeApiKeyInput(String input) {
+        return KEY_PREFIX.matcher(input.trim()).replaceFirst("").trim();
+    }
+
+    public record KeyValidation(boolean verified, Component feedback) {
+        private static KeyValidation error(String translationKey, Object... args) {
+            return new KeyValidation(false, I18n.translate(translationKey, args));
+        }
+    }
+
+    public static CompletableFuture<KeyValidation> validateApiKeyAsync(String apiKey) {
         if (apiKey == null || apiKey.isBlank()) {
-            return CompletableFuture.completedFuture(false);
+            return CompletableFuture.completedFuture(KeyValidation.error("translatormod.gui.api_key.invalid"));
         }
 
+        long deadline;
         synchronized (TranslationHandler.class) {
             long now = System.currentTimeMillis();
             if (now < validationCooldownUntil) {
-                return CompletableFuture.completedFuture(null);
+                return CompletableFuture.completedFuture(KeyValidation.error(
+                        "translatormod.gui.api_key.cooldown", getValidationCooldownRemaining()));
             }
-            validationCooldownUntil = now + VALIDATION_COOLDOWN_SEC * 1000L;
+            deadline = now + VALIDATION_COOLDOWN_SEC * 1000L;
+            validationCooldownUntil = deadline;
         }
 
         return CompletableFuture.supplyAsync(() -> {
@@ -334,29 +352,46 @@ public class TranslationHandler {
                 String endpoint = apiKey.endsWith(":fx")
                         ? "https://api-free.deepl.com/v2/usage"
                         : "https://api.deepl.com/v2/usage";
-
-                java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                        .uri(java.net.URI.create(endpoint))
+                HttpRequest request = HttpRequest.newBuilder(URI.create(endpoint))
                         .header("Authorization", "DeepL-Auth-Key " + apiKey)
                         .timeout(Duration.ofSeconds(5))
                         .GET()
                         .build();
 
-                java.net.http.HttpResponse<String> response = HTTP_CLIENT
-                        .send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
-
-                return response.statusCode() == 200;
-            } catch (Exception e) {
-                synchronized (TranslationHandler.class) {
-                    validationCooldownUntil = 0L;
+                int status = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.discarding()).statusCode();
+                if (status == 200) {
+                    return new KeyValidation(true, I18n.translate("translatormod.gui.api_key.verified"));
                 }
-                return false;
+                if (status == 429 || status == 529) {
+                    return KeyValidation.error("translatormod.chat.error.rate_limit_with_time",
+                            getValidationCooldownRemaining());
+                }
+                clearValidationCooldown(deadline);
+                return switch (status) {
+                    case 401 -> KeyValidation.error("translatormod.gui.api_key.invalid");
+                    case 403 -> KeyValidation.error("translatormod.usage.error.forbidden");
+                    default -> KeyValidation.error("translatormod.usage.error.http", status);
+                };
+            } catch (HttpTimeoutException e) {
+                clearValidationCooldown(deadline);
+                return KeyValidation.error("translatormod.usage.error.timeout");
+            } catch (IllegalArgumentException e) {
+                clearValidationCooldown(deadline);
+                return KeyValidation.error("translatormod.gui.api_key.invalid");
+            } catch (IOException | InterruptedException e) {
+                clearValidationCooldown(deadline);
+                if (e instanceof InterruptedException) Thread.currentThread().interrupt();
+                return KeyValidation.error("translatormod.usage.error.failed");
             }
         });
     }
 
-    public static int getValidationCooldownRemaining() {
-        long remaining = (validationCooldownUntil - System.currentTimeMillis()) / 1000 + 1;
+    private static synchronized void clearValidationCooldown(long deadline) {
+        if (validationCooldownUntil == deadline) validationCooldownUntil = 0L;
+    }
+
+    private static int getValidationCooldownRemaining() {
+        long remaining = Math.ceilDiv(validationCooldownUntil - System.currentTimeMillis(), 1000L);
         return (int) Math.max(0, remaining);
     }
 
