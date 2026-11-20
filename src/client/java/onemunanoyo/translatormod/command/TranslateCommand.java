@@ -185,10 +185,8 @@ public class TranslateCommand {
     }
 
     private static int executeKey(CommandContext<FabricClientCommandSource> ctx) {
-        String key = StringArgumentType.getString(ctx, "apiKey");
-        // サニタイズ
-        key = key.trim().replaceAll("^DeepL-Auth-Key\\s+", ""); // プレフィックス誤入力対応
-        
+        String key = TranslationHandler.normalizeApiKeyInput(StringArgumentType.getString(ctx, "apiKey"));
+
         TranslatorConfig config = TranslatorConfig.getInstance();
         if (!config.setApiKey(key)) return 0;
         

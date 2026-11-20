@@ -150,45 +150,30 @@ public class TranslatorScreen extends Screen {
         this.addRenderableWidget(Button.builder(
                 I18n.translate("translatormod.button.save"),
                 btn -> {
-                    String input = apiKeyField.getValue().trim();
-                    if (!input.isEmpty()) {
-                        int cooldown = TranslationHandler.getValidationCooldownRemaining();
-                        if (cooldown > 0) {
-                            if (minecraft != null && minecraft.player != null) {
-                                minecraft.player.sendOverlayMessage(I18n.translate("translatormod.gui.api_key.cooldown", cooldown));
+                    String input = TranslationHandler.normalizeApiKeyInput(apiKeyField.getValue());
+                    var client = minecraft;
+                    if (input.isEmpty() || client == null) return;
+
+                    btn.active = false;
+                    btn.setMessage(I18n.translate("translatormod.gui.api_key.verifying"));
+                    TranslationHandler.validateApiKeyAsync(input).whenComplete((result, error) -> client.execute(() -> {
+                        btn.active = true;
+                        btn.setMessage(I18n.translate("translatormod.button.save"));
+
+                        if (error == null && result.verified()) {
+                            if (!config.setApiKey(input)) return;
+                            TranslationHandler.clearCache();
+                            if (input.equals(TranslationHandler.normalizeApiKeyInput(apiKeyField.getValue()))) {
+                                apiKeyField.setValue("");
                             }
-                            return;
+                            apiKeyField.setHint(I18n.translate("translatormod.placeholder.api_key_filled",
+                                    input.substring(Math.max(0, input.length() - 4))));
                         }
-
-                        btn.active = false;
-                        btn.setMessage(I18n.translate("translatormod.gui.api_key.verifying"));
-
-                        TranslationHandler.validateApiKeyAsync(input).thenAccept(success -> {
-                            if (minecraft != null) {
-                                minecraft.execute(() -> {
-                                    btn.active = true;
-                                    btn.setMessage(I18n.translate("translatormod.button.save"));
-
-                                    if (success != null && success) {
-                                        if (config.setApiKey(input)) {
-                                            TranslationHandler.clearCache();
-                                            apiKeyField.setValue("");
-                                            apiKeyField.setHint(I18n.translate("translatormod.placeholder.api_key_filled",
-                                                    config.apiKey.substring(Math.max(0, config.apiKey.length() - 4))
-                                            ));
-                                            if (minecraft.player != null) {
-                                                minecraft.player.sendOverlayMessage(I18n.translate("translatormod.gui.api_key.verified"));
-                                            }
-                                        }
-                                    } else {
-                                        if (minecraft.player != null) {
-                                            minecraft.player.sendOverlayMessage(I18n.translate("translatormod.gui.api_key.invalid"));
-                                        }
-                                    }
-                                });
-                            }
-                        });
-                    }
+                        if (client.player != null) {
+                            client.player.sendOverlayMessage(error == null ? result.feedback()
+                                    : I18n.translate("translatormod.usage.error.failed"));
+                        }
+                    }));
                 }
         ).bounds(x + w - 80, y, 80, BUTTON_HEIGHT).build());
         y += FIELD_HEIGHT + PADDING;
