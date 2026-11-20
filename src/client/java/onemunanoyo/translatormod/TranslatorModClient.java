@@ -18,6 +18,8 @@ import java.util.regex.Pattern;
 public class TranslatorModClient implements ClientModInitializer {
 
 	private static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)§[0-9A-FK-ORx]");
+	private static final Pattern HYPIXEL_ALL_CHAT_SENDER = Pattern.compile(
+			"(?:\\[[0-9]+[✫✯]?\\] )?(?:\\[(?:VIP\\+?|MVP\\+{0,2}|YOUTUBE|ዞ)\\] )?[A-Za-z0-9_]{3,16}");
 
 	@Override
 	public void onInitializeClient() {
@@ -153,7 +155,7 @@ public class TranslatorModClient implements ClientModInitializer {
 		if (text.startsWith("From ") || text.startsWith("To "))           return config.hypixelDM;
 		if (text.contains(": ")) {
 			String[] parts = text.split(": ", 2);
-			if (parts.length > 0 && parts[0].matches("^[A-Za-z0-9_]{3,16}$")) {
+			if (parts.length > 0 && HYPIXEL_ALL_CHAT_SENDER.matcher(parts[0]).matches()) {
 				return config.hypixelAllChat;
 			}
 		}
